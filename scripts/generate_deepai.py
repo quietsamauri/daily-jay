@@ -45,6 +45,21 @@ def pick_asset_for_fallback():
     daynum = int(datetime.datetime.utcnow().strftime("%j"))
     return os.path.join(ASSETS_DIR, sorted(refs)[daynum % len(refs)])
 
+def load_manifest(path):
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return []  # list of entries: {date, src, prompt, ref?, source?}
+
+def save_manifest(path, items):
+    # keep newest first
+    items_sorted = sorted(items, key=lambda x: x["date"], reverse=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(items_sorted, f, indent=2)
+
 def main():
     api_key = os.environ.get("DEEPAI_API_KEY")
     if not api_key:
@@ -63,25 +78,35 @@ def main():
         download(img_url, today_path)
         meta["source"] = "deepai"
     except Exception as e:
-        # Fallback to one of your real images so the site never shows a broken image
+        # Fallback to an asset so site never breaks
         fallback = pick_asset_for_fallback()
         if not fallback:
-            raise  # no assets to fall back to
+            raise
         with open(fallback, "rb") as src, open(today_path, "wb") as dst:
             dst.write(src.read())
-        meta["source"] = "fallback-asset"
-        meta["ref"] = os.path.basename(fallback)
-        meta["error"] = str(e)
+        meta.update({"source": "fallback-asset", "ref": os.path.basename(fallback), "error": str(e)})
 
     # Update latest.jpg
     with open(today_path, "rb") as src, open(latest_path, "wb") as dst:
         dst.write(src.read())
 
-    # Write metadata
-    with open(f"{OUT_DIR}/meta.json", "w", encoding="utf-8") as m:
-        json.dump(meta, m, indent=2)
+    # Write today's meta (optional, used on the homepage)
+    with open(f"{OUT_DIR}/meta.json", "w", encoding="utf-8") as f:
+        json.dump(meta, f, indent=2)
 
-    print(f"Saved {today_path} and updated latest.jpg (source={meta['source']})")
+    # --- NEW: update manifest with real entries only ---
+    manifest_path = f"{OUT_DIR}/manifest.json"
+    manifest = load_manifest(manifest_path)
 
-if __name__ == "__main__":
-    main()
+    # If today's entry exists, replace it; otherwise append
+    manifest = [m for m in manifest if m.get("date") != date_str]
+    manifest.append({
+        "date": date_str,
+        "src": f"{date_str}.jpg",
+        "prompt": prompt,
+        **({"ref": meta.get("ref")} if "ref" in meta else {}),
+        "source": meta.get("source", "unknown")
+    })
+    save_manifest(manifest_path, manifest)
+
+    print(f"Saved {today_path} and updated latest.jpg; manifest has {len(manifest)} entries")
