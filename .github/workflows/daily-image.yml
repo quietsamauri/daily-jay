@@ -2,9 +2,9 @@ name: Daily Image
 
 on:
   schedule:
-    - cron: "5 13 * * *"   # daily ~9:05am ET
-  workflow_dispatch:        # manual runs from desktop browser
-  push:                     # run when you commit to main (handy for testing)
+    - cron: "5 13 * * *"   # runs daily at ~9:05am ET
+  workflow_dispatch:        # allow manual runs from GitHub UI
+  push:                     # also run when you commit changes to main
     branches: [ main ]
     paths:
       - "scripts/**"
@@ -30,9 +30,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Generate today's image
+      - name: Generate today's image with Replicate
         env:
-          DEEPAI_API_KEY: ${{ secrets.DEEPAI_API_KEY }}
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
         run: |
           python scripts/generate_deepai.py
 
