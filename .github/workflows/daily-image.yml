@@ -3,8 +3,8 @@ name: Daily Image
 on:
   schedule:
     - cron: "5 13 * * *"   # daily ~9:05am ET
-  workflow_dispatch:
-  push:
+  workflow_dispatch:        # manual runs
+  push:                     # test by committing small changes
     branches: [ main ]
     paths:
       - "scripts/**"
@@ -31,15 +31,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Sanity check Replicate auth
+      - name: Sanity check Replicate auth (non-blocking)
         env:
           REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
         run: |
-          status=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: Token $REPLICATE_API_TOKEN" \
-            https://api.replicate.com/v1/models)
-          echo "HTTP status: $status"
-          test "$status" = "200"
+          if [ -z "$REPLICATE_API_TOKEN" ]; then
+            echo "::warning::REPLICATE_API_TOKEN is not set. The script will fall back to a local asset."
+          else
+            status=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "Authorization: Token $REPLICATE_API_TOKEN" \
+              https://api.replicate.com/v1/models)
+            echo "Replicate /v1/models HTTP status: $status"
+            if [ "$status" != "200" ]; then
+              echo "::warning::Replicate token check did not return 200. Continuing; script will fall back to asset if needed."
+            fi
+          fi
 
       - name: Sanity check files
         run: |
@@ -50,7 +56,7 @@ jobs:
           echo "--- assets/"
           ls -la assets || true
           echo "--- prompts.txt head:"
-          head -n 3 prompts.txt || true
+          head -n 5 prompts.txt || true
 
       - name: Generate today's image with Replicate
         env:
