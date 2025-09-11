@@ -2,14 +2,15 @@ name: Daily Image
 
 on:
   schedule:
-    - cron: "5 13 * * *"   # runs daily at ~9:05am ET
-  workflow_dispatch:        # allow manual runs from GitHub UI
-  push:                     # also run when you commit changes to main
+    - cron: "5 13 * * *"   # daily ~9:05am ET
+  workflow_dispatch:
+  push:
     branches: [ main ]
     paths:
       - "scripts/**"
       - "prompts.txt"
       - ".github/workflows/daily-image.yml"
+      - "assets/**"
 
 jobs:
   generate:
@@ -18,7 +19,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4   # ✅ FIXED HERE
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -39,6 +40,17 @@ jobs:
             https://api.replicate.com/v1/models)
           echo "HTTP status: $status"
           test "$status" = "200"
+
+      - name: Sanity check files
+        run: |
+          echo "Repository tree:"
+          ls -la
+          echo "--- scripts/"
+          ls -la scripts || true
+          echo "--- assets/"
+          ls -la assets || true
+          echo "--- prompts.txt head:"
+          head -n 3 prompts.txt || true
 
       - name: Generate today's image with Replicate
         env:
