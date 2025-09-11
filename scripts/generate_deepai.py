@@ -61,52 +61,49 @@ def save_manifest(path, items):
         json.dump(items_sorted, f, indent=2)
 
 def main():
-    api_key = os.environ.get("DEEPAI_API_KEY")
-    if not api_key:
-        raise RuntimeError("DEEPAI_API_KEY not set.")
+    api_token = os.environ.get("REPLICATE_API_TOKEN")
+    if not api_token:
+        raise RuntimeError("REPLICATE_API_TOKEN not set (add it as a repo Secret).")
 
-    prompt, date_str = choose_prompt()
+    prompt, ref_image, date_str = choose_prompt_and_ref()
     pathlib.Path(OUT_DIR).mkdir(parents=True, exist_ok=True)
-    today_path = f"{OUT_DIR}/{date_str}.jpg"
+
+    # Build today’s base filename
+    base_name = date_str
+
+    # Check how many images already exist today
+    existing = [f for f in os.listdir(OUT_DIR) if f.startswith(base_name) and f.endswith(".jpg")]
+    run_num = len(existing) + 1
+    file_name = f"{base_name}-{run_num}.jpg"
+
+    today_path = f"{OUT_DIR}/{file_name}"
     latest_path = f"{OUT_DIR}/latest.jpg"
 
-    steer = ", ultra-detailed, photorealistic, natural skin tones, high dynamic range"
-    meta = {"date": date_str, "prompt": prompt}
+    meta = {"date": date_str, "prompt": prompt, "ref": os.path.basename(ref_image)}
 
     try:
-        img_url = deepai_text2img(prompt + steer, api_key)
+        img_url = replicate_instantid(prompt, api_token, ref_image)
         download(img_url, today_path)
-        meta["source"] = "deepai"
+        meta["source"] = "replicate-instantid"
     except Exception as e:
-        # Fallback to an asset so site never breaks
-        fallback = pick_asset_for_fallback()
-        if not fallback:
+        fb = pick_asset_fallback()
+        if not fb:
             raise
-        with open(fallback, "rb") as src, open(today_path, "wb") as dst:
+        with open(fb, "rb") as src, open(today_path, "wb") as dst:
             dst.write(src.read())
-        meta.update({"source": "fallback-asset", "ref": os.path.basename(fallback), "error": str(e)})
+        meta.update({"source": "fallback-asset", "error": str(e)})
 
-    # Update latest.jpg
+    # update latest.jpg
     with open(today_path, "rb") as src, open(latest_path, "wb") as dst:
         dst.write(src.read())
 
-    # Write today's meta (optional, used on the homepage)
+    # write today’s meta
     with open(f"{OUT_DIR}/meta.json", "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
 
-    # --- NEW: update manifest with real entries only ---
+    # update manifest
     manifest_path = f"{OUT_DIR}/manifest.json"
     manifest = load_manifest(manifest_path)
-
-    # If today's entry exists, replace it; otherwise append
-    manifest = [m for m in manifest if m.get("date") != date_str]
+    manifest = [m for m in manifest if m.get("src") != file_name]
     manifest.append({
         "date": date_str,
-        "src": f"{date_str}.jpg",
-        "prompt": prompt,
-        **({"ref": meta.get("ref")} if "ref" in meta else {}),
-        "source": meta.get("source", "unknown")
-    })
-    save_manifest(manifest_path, manifest)
-
-    print(f"Saved {today_path} and updated latest.jpg; manifest has {len(manifest)} entries")
