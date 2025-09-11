@@ -1,36 +1,52 @@
-# scripts/generate_deepai.py  (Replicate + InstantID version with run suffixes)
-import os, datetime, json, pathlib, urllib.request, time, requests, base64, mimetypes
+# scripts/generate_deepai.py
+# Replicate + InstantID with: auto version fetch, per-day run suffixes, manifest, and safe fallback.
+
+import os, datetime, json, pathlib, urllib.request, time, requests, base64, mimetypes, sys
 
 PROMPTS_FILE = "prompts.txt"
 OUT_DIR = "daily"
 ASSETS_DIR = "assets"
 TZ_OFFSET_HOURS = -4  # Rough ET offset for filenames
 
-# Replicate model + version (InstantID). You can update the version from the model's API page if needed.
-REPLICATE_MODEL = "zsxkib/instant-id"
-REPLICATE_VERSION = "9dcd6d78e7c6560c340d916fe32e9f24aabfa331e5cce95fe31f77fb03121426"
+REPLICATE_MODEL = "zsxkib/instant-id"  # We'll fetch its latest version dynamically
+
+def log(msg): print(f"[generator] {msg}", flush=True)
 
 def choose_prompt_and_ref():
+    if not os.path.exists(PROMPTS_FILE):
+        raise RuntimeError(f"Missing {PROMPTS_FILE}")
     with open(PROMPTS_FILE, "r", encoding="utf-8") as f:
         prompts = [p.strip() for p in f if p.strip()]
     if not prompts:
         raise RuntimeError("prompts.txt is empty.")
 
-    # Rotate prompt by day-of-year
     today = datetime.datetime.utcnow() + datetime.timedelta(hours=TZ_OFFSET_HOURS)
     daynum = int(today.strftime("%j"))
     prompt = prompts[daynum % len(prompts)]
     date_str = today.strftime("%Y-%m-%d")
 
-    # Rotate reference image jay1 -> jay2 -> jay3 -> repeat
+    if not os.path.isdir(ASSETS_DIR):
+        raise RuntimeError(f"Missing {ASSETS_DIR}/ directory")
     refs = sorted([f for f in os.listdir(ASSETS_DIR)
                    if f.lower().startswith("jay") and f.lower().endswith((".jpg", ".jpeg", ".png"))])
     if not refs:
-        raise RuntimeError("Put jay1.jpg, jay2.jpg, jay3.jpg into assets/")
+        raise RuntimeError("No reference images in assets/ (expected jay1.jpg, jay2.jpg, jay3.jpg)")
     ref = os.path.join(ASSETS_DIR, refs[daynum % len(refs)])
     return prompt, ref, date_str
 
-def replicate_instantid(prompt, api_token, ref_path, width=896, height=1152, steps=28, guidance=6.5):
+def replicate_latest_version(api_token):
+    """Fetch the latest version id for the InstantID model."""
+    url = f"https://api.replicate.com/v1/models/{REPLICATE_MODEL}/versions"
+    headers = {"Authorization": f"Token {api_token}"}
+    r = requests.get(url, headers=headers, timeout=30)
+    r.raise_for_status()
+    data = r.json()
+    versions = data.get("results") or []
+    if not versions:
+        raise RuntimeError(f"No versions returned for model {REPLICATE_MODEL}")
+    return versions[0]["id"]  # newest first
+
+def replicate_instantid(prompt, api_token, ref_path, version_id, width=896, height=1152, steps=28, guidance=6.5):
     """Call Replicate InstantID and return a direct image URL."""
     with open(ref_path, "rb") as f:
         b64 = base64.b64encode(f.read()).decode("ascii")
@@ -40,7 +56,7 @@ def replicate_instantid(prompt, api_token, ref_path, width=896, height=1152, ste
     endpoint = "https://api.replicate.com/v1/predictions"
     headers = {"Authorization": f"Token {api_token}", "Content-Type": "application/json"}
     payload = {
-        "version": REPLICATE_VERSION,
+        "version": version_id,
         "input": {
             "prompt": prompt + ", ultra-detailed, photorealistic, natural skin tones, high dynamic range",
             "negative_prompt": "blurry, deformed, extra limbs, double face, watermark, text, low quality",
@@ -55,25 +71,24 @@ def replicate_instantid(prompt, api_token, ref_path, width=896, height=1152, ste
         }
     }
 
-    r = requests.post(endpoint, headers=headers, json=payload, timeout=30)
+    r = requests.post(endpoint, headers=headers, json=payload, timeout=60)
     r.raise_for_status()
-    prediction = r.json()
-    poll_url = prediction["urls"]["get"]
+    poll_url = r.json()["urls"]["get"]
 
-    # Poll until finished
-    for _ in range(120):  # ~2 minutes
-        pr = requests.get(poll_url, headers=headers, timeout=20)
+    for _ in range(120):  # up to ~4 minutes
+        pr = requests.get(poll_url, headers=headers, timeout=30)
         pr.raise_for_status()
         p = pr.json()
-        if p["status"] == "succeeded":
-            out = p["output"]
+        status = p.get("status")
+        if status == "succeeded":
+            out = p.get("output")
             if isinstance(out, list) and out:
                 return out[-1]
             if isinstance(out, str):
                 return out
             raise RuntimeError(f"Unexpected output format: {out}")
-        if p["status"] in ("failed", "canceled"):
-            raise RuntimeError(f"Replicate failed: {p.get('error') or p['status']}")
+        if status in ("failed", "canceled"):
+            raise RuntimeError(f"Replicate failed: {p.get('error') or status}")
         time.sleep(2)
 
     raise RuntimeError("Replicate timed out")
@@ -83,7 +98,8 @@ def download(url, dest, attempts=5):
         try:
             urllib.request.urlretrieve(url, dest)
             return
-        except Exception:
+        except Exception as e:
+            log(f"download attempt {i+1} failed: {e}")
             time.sleep(1 + i)
     raise RuntimeError("Failed to download image.")
 
@@ -112,17 +128,13 @@ def pick_asset_fallback():
     return os.path.join(ASSETS_DIR, sorted(refs)[daynum % len(refs)])
 
 def main():
-    api_token = os.environ.get("REPLICATE_API_TOKEN")
-    if not api_token:
-        raise RuntimeError("REPLICATE_API_TOKEN not set (add it as a repo Secret).")
-
+    # Prep
     prompt, ref_image, date_str = choose_prompt_and_ref()
     pathlib.Path(OUT_DIR).mkdir(parents=True, exist_ok=True)
 
-    # Build today's base name and add a run suffix (1,2,3...) per day
+    # Per-day run suffix
     base_name = date_str
-    existing = [f for f in os.listdir(OUT_DIR)
-                if f.startswith(base_name + "-") and f.endswith(".jpg")]
+    existing = [f for f in os.listdir(OUT_DIR) if f.startswith(base_name + "-") and f.endswith(".jpg")]
     run_num = len(existing) + 1
     file_name = f"{base_name}-{run_num}.jpg"
 
@@ -131,27 +143,39 @@ def main():
 
     meta = {"date": date_str, "prompt": prompt, "ref": os.path.basename(ref_image)}
 
+    # Try Replicate (fallback to asset if anything goes wrong)
+    used_fallback = False
     try:
-        img_url = replicate_instantid(prompt, api_token, ref_image)
+        api_token = os.environ.get("REPLICATE_API_TOKEN")
+        if not api_token:
+            raise RuntimeError("REPLICATE_API_TOKEN not set (add it as a repo Secret).")
+
+        log("Fetching latest Replicate model version…")
+        version_id = replicate_latest_version(api_token)
+        log(f"Using {REPLICATE_MODEL}@{version_id}")
+        img_url = replicate_instantid(prompt, api_token, ref_image, version_id)
+        log(f"Image URL: {img_url}")
         download(img_url, today_path)
         meta["source"] = "replicate-instantid"
     except Exception as e:
+        log(f"Generation failed, using fallback asset: {e}")
         fb = pick_asset_fallback()
         if not fb:
-            raise
+            print(f"[generator] FATAL: {e}")
+            sys.exit(1)
         with open(fb, "rb") as src, open(today_path, "wb") as dst:
             dst.write(src.read())
         meta.update({"source": "fallback-asset", "error": str(e)})
+        used_fallback = True
 
-    # Update latest.jpg for the homepage
+    # Update latest.jpg
     with open(today_path, "rb") as src, open(latest_path, "wb") as dst:
         dst.write(src.read())
 
-    # Write today's meta (used by homepage)
+    # Write meta + manifest
     with open(f"{OUT_DIR}/meta.json", "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
 
-    # Update manifest for the gallery (append this run)
     manifest_path = f"{OUT_DIR}/manifest.json"
     manifest = load_manifest(manifest_path)
     manifest = [m for m in manifest if m.get("src") != file_name]
@@ -164,7 +188,12 @@ def main():
     })
     save_manifest(manifest_path, manifest)
 
-    print(f"Saved {today_path} (run #{run_num} for {date_str}) and updated latest.jpg")
+    log(f"Saved {today_path} (run #{run_num} for {date_str}) and updated latest.jpg"
+        + (" [FALLBACK]" if used_fallback else ""))
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"[generator] FATAL: {e}")
+        sys.exit(1)
