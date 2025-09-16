@@ -1,7 +1,7 @@
 {
-  "date": "2025-09-15",
-  "prompt": "artisan woodshop, sawdust sparkles in light beam, macro textures, photorealistic",
-  "ref": "Jay1.jpg",
+  "date": "2025-09-16",
+  "prompt": "astronaut on Mars examining a tiny bonsai in a dome, high-detail sci-fi realism, photorealistic",
+  "ref": "Jay2.jpg",
   "source": "fallback-asset",
   "error": "402 Client Error: Payment Required for url: https://api.replicate.com/v1/predictions"
 }
