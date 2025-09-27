@@ -1,5 +1,12 @@
 [
   {
+    "date": "2025-09-27",
+    "src": "2025-09-27-1.jpg",
+    "prompt": "candid portrait at a sunny sidewalk cafe in Paris, 35mm film look, natural daylight, photorealistic",
+    "ref": "Jay1.jpg",
+    "source": "fallback-asset"
+  },
+  {
     "date": "2025-09-26",
     "src": "2025-09-26-1.jpg",
     "prompt": "astronaut on Mars examining a tiny bonsai in a dome, high-detail sci-fi realism, photorealistic",
