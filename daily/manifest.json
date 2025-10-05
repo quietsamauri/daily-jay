@@ -1,5 +1,12 @@
 [
   {
+    "date": "2025-10-05",
+    "src": "2025-10-05-1.jpg",
+    "prompt": "artisan woodshop, sawdust sparkles in light beam, macro textures, photorealistic",
+    "ref": "Jay3.jpg",
+    "source": "fallback-asset"
+  },
+  {
     "date": "2025-10-04",
     "src": "2025-10-04-1.jpg",
     "prompt": "cozy reading nook with a sleepy cat, window light, soft matte tones, photorealistic",
