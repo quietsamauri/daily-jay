@@ -1,5 +1,12 @@
 [
   {
+    "date": "2025-10-13",
+    "src": "2025-10-13-1.jpg",
+    "prompt": "surfing a glassy wave at golden hour, drone angle, cinematic color grade, photorealistic",
+    "ref": "Jay2.jpg",
+    "source": "fallback-asset"
+  },
+  {
     "date": "2025-10-12",
     "src": "2025-10-12-1.jpg",
     "prompt": "retro 80s roller rink, pastel neon, candid laugh with motion streaks, photorealistic",
