@@ -1,5 +1,12 @@
 [
   {
+    "date": "2025-10-16",
+    "src": "2025-10-16-1.jpg",
+    "prompt": "astronaut on Mars examining a tiny bonsai in a dome, high-detail sci-fi realism, photorealistic",
+    "ref": "Jay2.jpg",
+    "source": "fallback-asset"
+  },
+  {
     "date": "2025-10-15",
     "src": "2025-10-15-1.jpg",
     "prompt": "artisan woodshop, sawdust sparkles in light beam, macro textures, photorealistic",
