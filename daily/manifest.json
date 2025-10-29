@@ -1,5 +1,12 @@
 [
   {
+    "date": "2025-10-29",
+    "src": "2025-10-29-1.jpg",
+    "prompt": "sushi chef behind the counter, shallow depth of field, warm tungsten lights, photorealistic",
+    "ref": "Jay3.jpg",
+    "source": "fallback-asset"
+  },
+  {
     "date": "2025-10-28",
     "src": "2025-10-28-1.jpg",
     "prompt": "trail running at sunrise in the Rockies, wide cinematic shot, dynamic motion blur, photorealistic",
