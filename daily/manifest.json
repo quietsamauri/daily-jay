@@ -1,5 +1,12 @@
 [
   {
+    "date": "2025-11-01",
+    "src": "2025-11-01-1.jpg",
+    "prompt": "retro 80s roller rink, pastel neon, candid laugh with motion streaks, photorealistic",
+    "ref": "Jay3.jpg",
+    "source": "fallback-asset"
+  },
+  {
     "date": "2025-10-31",
     "src": "2025-10-31-1.jpg",
     "prompt": "neon club DJ set, moody haze, rim light profile, record crate visible, photorealistic",
