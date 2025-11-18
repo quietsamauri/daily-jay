@@ -1,7 +1,7 @@
 {
-  "date": "2025-11-17",
-  "prompt": "trail running at sunrise in the Rockies, wide cinematic shot, dynamic motion blur, photorealistic",
-  "ref": "Jay1.jpg",
+  "date": "2025-11-18",
+  "prompt": "sushi chef behind the counter, shallow depth of field, warm tungsten lights, photorealistic",
+  "ref": "Jay2.jpg",
   "source": "fallback-asset",
-  "error": "402 Client Error: Payment Required for url: https://api.replicate.com/v1/predictions"
+  "error": "500 Server Error: Internal Server Error for url: https://api.replicate.com/v1/models/zsxkib/instant-id/versions"
 }
