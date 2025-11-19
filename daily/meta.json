@@ -1,7 +1,7 @@
 {
-  "date": "2025-11-18",
-  "prompt": "sushi chef behind the counter, shallow depth of field, warm tungsten lights, photorealistic",
-  "ref": "Jay2.jpg",
+  "date": "2025-11-19",
+  "prompt": "courtside at an NBA game, energetic crowd, stadium lighting, telephoto compression, photorealistic",
+  "ref": "Jay3.jpg",
   "source": "fallback-asset",
-  "error": "500 Server Error: Internal Server Error for url: https://api.replicate.com/v1/models/zsxkib/instant-id/versions"
+  "error": "402 Client Error: Payment Required for url: https://api.replicate.com/v1/predictions"
 }
