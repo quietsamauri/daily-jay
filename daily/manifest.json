@@ -1,5 +1,12 @@
 [
   {
+    "date": "2025-12-03",
+    "src": "2025-12-03-1.jpg",
+    "prompt": "cozy reading nook with a sleepy cat, window light, soft matte tones, photorealistic",
+    "ref": "Jay2.jpg",
+    "source": "fallback-asset"
+  },
+  {
     "date": "2025-12-02",
     "src": "2025-12-02-1.jpg",
     "prompt": "surfing a glassy wave at golden hour, drone angle, cinematic color grade, photorealistic",
