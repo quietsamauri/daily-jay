@@ -1,7 +1,7 @@
 {
-  "date": "2025-12-27",
-  "prompt": "trail running at sunrise in the Rockies, wide cinematic shot, dynamic motion blur, photorealistic",
-  "ref": "Jay2.jpg",
+  "date": "2025-12-28",
+  "prompt": "sushi chef behind the counter, shallow depth of field, warm tungsten lights, photorealistic",
+  "ref": "Jay3.jpg",
   "source": "fallback-asset",
   "error": "402 Client Error: Payment Required for url: https://api.replicate.com/v1/predictions"
 }
