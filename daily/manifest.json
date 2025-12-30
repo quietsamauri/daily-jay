@@ -1,5 +1,12 @@
 [
   {
+    "date": "2025-12-30",
+    "src": "2025-12-30-1.jpg",
+    "prompt": "neon club DJ set, moody haze, rim light profile, record crate visible, photorealistic",
+    "ref": "Jay2.jpg",
+    "source": "fallback-asset"
+  },
+  {
     "date": "2025-12-29",
     "src": "2025-12-29-1.jpg",
     "prompt": "courtside at an NBA game, energetic crowd, stadium lighting, telephoto compression, photorealistic",
