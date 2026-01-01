@@ -1,7 +1,7 @@
 {
-  "date": "2025-12-31",
-  "prompt": "retro 80s roller rink, pastel neon, candid laugh with motion streaks, photorealistic",
-  "ref": "Jay3.jpg",
+  "date": "2026-01-01",
+  "prompt": "trail running at sunrise in the Rockies, wide cinematic shot, dynamic motion blur, photorealistic",
+  "ref": "Jay2.jpg",
   "source": "fallback-asset",
   "error": "402 Client Error: Payment Required for url: https://api.replicate.com/v1/predictions"
 }
