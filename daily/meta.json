@@ -1,7 +1,7 @@
 {
-  "date": "2026-01-04",
-  "prompt": "neon club DJ set, moody haze, rim light profile, record crate visible, photorealistic",
-  "ref": "Jay2.jpg",
+  "date": "2026-01-05",
+  "prompt": "retro 80s roller rink, pastel neon, candid laugh with motion streaks, photorealistic",
+  "ref": "Jay3.jpg",
   "source": "fallback-asset",
   "error": "402 Client Error: Payment Required for url: https://api.replicate.com/v1/predictions"
 }
