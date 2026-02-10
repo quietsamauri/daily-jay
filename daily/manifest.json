@@ -1,5 +1,12 @@
 [
   {
+    "date": "2026-02-10",
+    "src": "2026-02-10-1.jpg",
+    "prompt": "trail running at sunrise in the Rockies, wide cinematic shot, dynamic motion blur, photorealistic",
+    "ref": "Jay3.jpg",
+    "source": "fallback-asset"
+  },
+  {
     "date": "2026-02-09",
     "src": "2026-02-09-1.jpg",
     "prompt": "candid portrait at a sunny sidewalk cafe in Paris, 35mm film look, natural daylight, photorealistic",
