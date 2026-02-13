@@ -1,7 +1,7 @@
 {
-  "date": "2026-02-12",
-  "prompt": "courtside at an NBA game, energetic crowd, stadium lighting, telephoto compression, photorealistic",
-  "ref": "Jay2.jpg",
+  "date": "2026-02-13",
+  "prompt": "neon club DJ set, moody haze, rim light profile, record crate visible, photorealistic",
+  "ref": "Jay3.jpg",
   "source": "fallback-asset",
   "error": "402 Client Error: Payment Required for url: https://api.replicate.com/v1/predictions"
 }
