@@ -1,7 +1,7 @@
 {
-  "date": "2026-02-24",
-  "prompt": "retro 80s roller rink, pastel neon, candid laugh with motion streaks, photorealistic",
-  "ref": "Jay2.jpg",
+  "date": "2026-02-25",
+  "prompt": "surfing a glassy wave at golden hour, drone angle, cinematic color grade, photorealistic",
+  "ref": "Jay3.jpg",
   "source": "fallback-asset",
   "error": "402 Client Error: Payment Required for url: https://api.replicate.com/v1/predictions"
 }
