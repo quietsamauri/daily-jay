@@ -1,5 +1,12 @@
 [
   {
+    "date": "2026-03-24",
+    "src": "2026-03-24-1.jpg",
+    "prompt": "courtside at an NBA game, energetic crowd, stadium lighting, telephoto compression, photorealistic",
+    "ref": "Jay3.jpg",
+    "source": "fallback-asset"
+  },
+  {
     "date": "2026-03-23",
     "src": "2026-03-23-1.jpg",
     "prompt": "sushi chef behind the counter, shallow depth of field, warm tungsten lights, photorealistic",
